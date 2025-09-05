@@ -3,45 +3,44 @@ package com.anton.to_do_list
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.anton.to_do_list.ui.screens.taskEditScreen.TaskEditScreen
+import com.anton.to_do_list.ui.screens.taskListScreen.TaskListScreen
 import com.anton.to_do_list.ui.theme.TodolistTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             TodolistTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = Routes.LIST) {
+                    composable(Routes.LIST) {
+                        TaskListScreen(navController)
+                    }
+                    composable(
+                        route = "${Routes.EDIT}/{taskId}",
+                        arguments = listOf(navArgument("taskId") {
+                            type = NavType.IntType
+                            defaultValue = -1
+                        })
+                    ) { backStackEntry ->
+                        val taskId = backStackEntry.arguments?.getInt("taskId") ?: -1
+                        TaskEditScreen(navController, taskId)
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TodolistTheme {
-        Greeting("Android")
-    }
+object Routes {
+    const val LIST = "list"
+    const val EDIT = "edit"
 }
